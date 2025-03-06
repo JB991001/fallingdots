@@ -22,10 +22,21 @@
       font-size: 20px;
       z-index: 10;
     }
+    #gameOverMessage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 30px;
+      display: none;
+      z-index: 20;
+    }
   </style>
 </head>
 <body>
   <div id="score">Score: 0</div>
+  <div id="gameOverMessage">Game Over! Press Enter to Restart</div>
   <canvas id="gameCanvas"></canvas>
 
   <script>
@@ -50,6 +61,7 @@
     const dotFrequency = 30;
 
     let score = 0;
+    let gameOver = false;
 
     function createDot() {
       const dot = {
@@ -76,8 +88,7 @@
           dots[i].y + dots[i].radius > player.y &&
           dots[i].y - dots[i].radius < player.y + player.height
         ) {
-          alert(`Game Over! Your final score is ${score}`);
-          document.location.reload();
+          gameOver = true;
         }
       }
     }
@@ -116,7 +127,23 @@
       document.getElementById('score').textContent = `Score: ${score}`;
     }
 
+    function showGameOverMessage() {
+      document.getElementById('gameOverMessage').style.display = 'block';
+    }
+
+    function resetGame() {
+      score = 0;
+      dots.length = 0;
+      player.x = canvas.width / 2;
+      player.y = canvas.height - 50;
+      gameOver = false;
+      document.getElementById('gameOverMessage').style.display = 'none';
+      gameLoop();
+    }
+
     function gameLoop() {
+      if (gameOver) return;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       if (Math.random() * dotFrequency < 1) {
@@ -130,11 +157,19 @@
       drawPlayer();
       drawScore();
 
+      if (gameOver) {
+        showGameOverMessage();
+        return;
+      }
+
       requestAnimationFrame(gameLoop);
     }
 
     window.addEventListener('keydown', (e) => {
       keys[e.key] = true;
+      if (e.key === 'Enter' && gameOver) {
+        resetGame();
+      }
     });
 
     window.addEventListener('keyup', (e) => {
